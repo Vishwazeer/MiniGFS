@@ -1,20 +1,11 @@
-/* ═══════════════════════════════════════════════════════════════
-   MiniGFS — GFS Simulation Engine
-   State machine, consistent hashing, node management, log gen.
-   Zero deps. ~300 lines.
-   ═══════════════════════════════════════════════════════════════ */
-
-// ponytail: Simple state machine. No RxJS, no xstate. Switch statement is fine.
-
-// ─── Consistent Hash Ring ───
 class HashRing {
   constructor(vnodeCount = 3) {
     this.vnodeCount = vnodeCount;
-    this.nodes = new Map(); // id → { label, angles[] }
-    this.ring = []; // sorted array of { angle, nodeId }
+    this.nodes = new Map();
+    this.ring = [];
   }
 
-  // Simple hash: string → 0..2π
+  // Hash key
   hash(key) {
     let h = 0;
     for (let i = 0; i < key.length; i++) {
@@ -23,6 +14,7 @@ class HashRing {
     return ((h >>> 0) / 0xFFFFFFFF) * Math.PI * 2;
   }
 
+  // Add node
   addNode(id, label) {
     const angles = [];
     for (let v = 0; v < this.vnodeCount; v++) {
@@ -30,26 +22,28 @@ class HashRing {
       angles.push(angle);
       this.ring.push({ angle, nodeId: id });
     }
-    // Primary angle (for display)
     const primaryAngle = this.hash(id);
     this.nodes.set(id, { label, primaryAngle, vnodeAngles: angles });
     this.ring.sort((a, b) => a.angle - b.angle);
   }
 
+  // Remove node
   removeNode(id) {
     this.ring = this.ring.filter(r => r.nodeId !== id);
     this.nodes.delete(id);
   }
 
+  // Find node
   lookup(key) {
     if (this.ring.length === 0) return null;
     const angle = this.hash(key);
     for (const entry of this.ring) {
       if (entry.angle >= angle) return entry.nodeId;
     }
-    return this.ring[0].nodeId; // wrap around
+    return this.ring[0].nodeId;
   }
 
+  // Get nodes
   getNodePositions() {
     const result = [];
     for (const [id, info] of this.nodes) {
@@ -63,6 +57,7 @@ class HashRing {
     return result;
   }
 
+  // Get distribution
   getChunkDistribution(chunkCount = 100) {
     const dist = {};
     for (const [id] of this.nodes) dist[id] = 0;
@@ -74,7 +69,6 @@ class HashRing {
   }
 }
 
-// ─── Simulation States ───
 const SimState = {
   IDLE: 'IDLE',
   WRITE: 'WRITE',
@@ -82,25 +76,24 @@ const SimState = {
   FAILURE: 'FAILURE',
 };
 
-// ─── Node Model ───
 class ChunkserverNode {
   constructor(id, label) {
     this.id = id;
     this.label = label;
     this.online = true;
-    this.utilization = 0.3 + Math.random() * 0.5; // 30-80%
+    this.utilization = 0.3 + Math.random() * 0.5;
     this.usedTB = +(this.utilization * 10).toFixed(1);
     this.totalTB = 10;
     this.chunks = Math.floor(150 + Math.random() * 100);
   }
 
+  // Randomize storage
   randomizeUtil() {
     this.utilization = Math.max(0.1, Math.min(0.95, this.utilization + (Math.random() - 0.5) * 0.05));
     this.usedTB = +(this.utilization * this.totalTB).toFixed(1);
   }
 }
 
-// ─── Simulation Engine ───
 class SimulationEngine {
   constructor() {
     this.state = SimState.IDLE;
@@ -110,31 +103,28 @@ class SimulationEngine {
     this.replicationFactor = 3;
     this.masterChunks = 2847;
     this.cycleTime = 0;
-    this.cycleDuration = 15; // seconds per full cycle
+    this.cycleDuration = 15;
     this.operationLabel = '';
     this.operationDetail = '';
 
-    // Write operation state
     this.writePhase = 0;
     this.writePrimary = -1;
     this.writeReplicas = [];
 
-    // Read operation state
     this.readPhase = 0;
     this.readTarget = -1;
 
-    // Failure operation state
     this.failedNode = -1;
     this.recoveryProgress = 0;
     this.recoveryTarget = -1;
 
-    // Animation markers
-    this.activeFlows = []; // { from, to, color, progress, speed }
-    this.notifications = []; // { text, color, x, y, alpha }
+    this.activeFlows = [];
+    this.notifications = [];
 
     this.initNodes(this.nodeCount);
   }
 
+  // Setup servers
   initNodes(count) {
     this.chunkservers = [];
     for (let i = 0; i < count; i++) {
@@ -179,28 +169,25 @@ class SimulationEngine {
     this.cycleTime = 9;
   }
 
+  // Engine loop
   update(dt) {
     this.cycleTime += dt;
 
-    // Randomize utilization slowly
     if (Math.random() < 0.02) {
       const idx = Math.floor(Math.random() * this.chunkservers.length);
       if (this.chunkservers[idx]) this.chunkservers[idx].randomizeUtil();
     }
 
-    // Update active flows
     for (const flow of this.activeFlows) {
       flow.progress += flow.speed * dt;
       if (flow.progress > 1) flow.progress -= 1;
     }
 
-    // Fade notifications
     for (const n of this.notifications) {
       n.alpha -= dt * 0.3;
     }
     this.notifications = this.notifications.filter(n => n.alpha > 0);
 
-    // Auto cycle
     const ct = this.cycleTime % this.cycleDuration;
 
     if (ct < 5) {
@@ -215,11 +202,12 @@ class SimulationEngine {
     }
   }
 
+  // Write phase
   updateWrite(t) {
     const nc = this.chunkservers.length;
     if (nc < 3) return;
-    this.writePrimary = 2; // CS-03
-    this.writeReplicas = [6, 11]; // CS-07, CS-12
+    this.writePrimary = 2;
+    this.writeReplicas = [6, 11];
 
     if (t < 1) {
       this.writePhase = 0;
@@ -246,9 +234,10 @@ class SimulationEngine {
     }
   }
 
+  // Read phase
   updateRead(t) {
     const nc = this.chunkservers.length;
-    this.readTarget = Math.min(6, nc - 1); // CS-07
+    this.readTarget = Math.min(6, nc - 1);
 
     if (t < 1) {
       this.readPhase = 0;
@@ -269,10 +258,11 @@ class SimulationEngine {
     }
   }
 
+  // Failure phase
   updateFailure(t) {
     const nc = this.chunkservers.length;
-    this.failedNode = Math.min(6, nc - 1); // CS-07
-    this.recoveryTarget = Math.min(8, nc - 1); // CS-09
+    this.failedNode = Math.min(6, nc - 1);
+    this.recoveryTarget = Math.min(8, nc - 1);
 
     if (t < 1) {
       this.operationLabel = '⚠ NODE FAILURE';
@@ -294,6 +284,7 @@ class SimulationEngine {
     }
   }
 
+  // Fetch highlighting
   getHighlightedNodes() {
     const highlights = {};
     if (this.state === SimState.WRITE && this.writePhase >= 2) {
@@ -311,7 +302,6 @@ class SimulationEngine {
   }
 }
 
-// ─── Operation Log Generator ───
 class OperationLog {
   constructor() {
     this.entries = [];
@@ -367,7 +357,6 @@ class OperationLog {
   }
 }
 
-// Export
 window.Simulation = {
   HashRing,
   SimulationEngine,

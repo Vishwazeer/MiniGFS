@@ -1,11 +1,3 @@
-/* ═══════════════════════════════════════════════════════════════
-   MiniGFS — Canvas 2D Rendering Engine
-   Hexagons, lines, particles, ring, charts — all Canvas 2D.
-   Zero deps. ~400 lines.
-   ═══════════════════════════════════════════════════════════════ */
-
-// ponytail: Canvas 2D for everything. WebGL/Three.js when 16 nodes can't hold 60fps (never).
-
 const COLORS = {
   bg: '#0A0A0F',
   blue: '#00D4FF',
@@ -20,7 +12,7 @@ const COLORS = {
   lineFaint: 'rgba(255,255,255,0.03)',
 };
 
-// ─── Hexagon Drawing ───
+// Hexagon
 function drawHexagon(ctx, x, y, size, color, glowIntensity = 0, fill = true) {
   ctx.save();
   ctx.beginPath();
@@ -39,7 +31,7 @@ function drawHexagon(ctx, x, y, size, color, glowIntensity = 0, fill = true) {
   }
 
   if (fill) {
-    ctx.fillStyle = color + '18'; // low alpha fill
+    ctx.fillStyle = color + '18';
     ctx.fill();
   }
   ctx.strokeStyle = color;
@@ -48,7 +40,7 @@ function drawHexagon(ctx, x, y, size, color, glowIntensity = 0, fill = true) {
   ctx.restore();
 }
 
-// ─── Rounded Rectangle ───
+// Rounded rect
 function drawRoundedRect(ctx, x, y, w, h, r, color, glowIntensity = 0) {
   ctx.save();
   ctx.beginPath();
@@ -76,7 +68,7 @@ function drawRoundedRect(ctx, x, y, w, h, r, color, glowIntensity = 0) {
   ctx.restore();
 }
 
-// ─── Animated Data Flow Line ───
+// Data flow
 function drawFlowLine(ctx, fromX, fromY, toX, toY, color, progress = 0, dotCount = 3, lineWidth = 1, dashed = false) {
   ctx.save();
   ctx.beginPath();
@@ -88,7 +80,6 @@ function drawFlowLine(ctx, fromX, fromY, toX, toY, color, progress = 0, dotCount
   ctx.stroke();
   ctx.setLineDash([]);
 
-  // Moving dots along line
   if (progress >= 0) {
     const dx = toX - fromX;
     const dy = toY - fromY;
@@ -107,15 +98,13 @@ function drawFlowLine(ctx, fromX, fromY, toX, toY, color, progress = 0, dotCount
   ctx.restore();
 }
 
-// ─── Health Bar ───
+// Health bar
 function drawHealthBar(ctx, x, y, width, height, percent, color) {
   ctx.save();
-  // Background
   ctx.fillStyle = 'rgba(255,255,255,0.05)';
   ctx.beginPath();
   ctx.roundRect(x, y, width, height, height / 2);
   ctx.fill();
-  // Fill
   const fw = width * Math.max(0, Math.min(1, percent));
   if (fw > 0) {
     ctx.fillStyle = color;
@@ -126,7 +115,7 @@ function drawHealthBar(ctx, x, y, width, height, percent, color) {
   ctx.restore();
 }
 
-// ─── Text Helpers ───
+// Label text
 function drawLabel(ctx, text, x, y, color = COLORS.text, size = 11, align = 'center', font = 'JetBrains Mono') {
   ctx.save();
   ctx.font = `${size}px '${font}', monospace`;
@@ -137,6 +126,7 @@ function drawLabel(ctx, text, x, y, color = COLORS.text, size = 11, align = 'cen
   ctx.restore();
 }
 
+// Glowing text
 function drawLabelGlow(ctx, text, x, y, color, size = 11) {
   ctx.save();
   ctx.font = `bold ${size}px 'JetBrains Mono', monospace`;
@@ -149,7 +139,7 @@ function drawLabelGlow(ctx, text, x, y, color, size = 11) {
   ctx.restore();
 }
 
-// ─── Particle System ───
+// Particles
 class ParticleSystem {
   constructor(canvas) {
     this.canvas = canvas;
@@ -215,11 +205,10 @@ class ParticleSystem {
   }
 }
 
-// ─── Line Chart Renderer ───
+// Throughput chart
 function drawLineChart(ctx, data, x, y, w, h, color, maxVal, label) {
   ctx.save();
 
-  // Grid lines
   const gridLines = 4;
   for (let i = 0; i <= gridLines; i++) {
     const gy = y + (h / gridLines) * i;
@@ -230,14 +219,12 @@ function drawLineChart(ctx, data, x, y, w, h, color, maxVal, label) {
     ctx.lineWidth = 1;
     ctx.stroke();
 
-    // Y labels
     const val = (maxVal - (maxVal / gridLines) * i).toFixed(1);
     drawLabel(ctx, val, x - 8, gy, COLORS.textMuted, 9, 'right');
   }
 
   if (data.length < 2) { ctx.restore(); return; }
 
-  // Data line
   ctx.beginPath();
   const step = w / (data.length - 1);
   for (let i = 0; i < data.length; i++) {
@@ -252,7 +239,6 @@ function drawLineChart(ctx, data, x, y, w, h, color, maxVal, label) {
   ctx.shadowBlur = 6;
   ctx.stroke();
 
-  // Fill under the line
   ctx.lineTo(x + w, y + h);
   ctx.lineTo(x, y + h);
   ctx.closePath();
@@ -263,7 +249,6 @@ function drawLineChart(ctx, data, x, y, w, h, color, maxVal, label) {
   ctx.shadowBlur = 0;
   ctx.fill();
 
-  // Peak dot
   const maxIdx = data.indexOf(Math.max(...data));
   const peakX = x + step * maxIdx;
   const peakY = y + h - (data[maxIdx] / maxVal) * h;
@@ -274,17 +259,15 @@ function drawLineChart(ctx, data, x, y, w, h, color, maxVal, label) {
   ctx.shadowBlur = 8;
   ctx.fill();
 
-  // Peak label
-  drawLabel(ctx, `${data[maxIdx].toFixed(1)} GB/s`, peakX, peakY - 14, color, 10);
+  drawLabel(ctx, `${data[maxIdx].toFixed(1)} ${label}`, peakX, peakY - 14, color, 10);
 
   ctx.restore();
 }
 
-// ─── Ring Renderer ───
+// Hash ring
 function drawHashRing(ctx, cx, cy, radius, nodes, chunks, highlightNode, removedNode, time) {
   ctx.save();
 
-  // Ring circle with gradient border
   const ringGrad = ctx.createLinearGradient(cx - radius, cy - radius, cx + radius, cy + radius);
   ringGrad.addColorStop(0, COLORS.blue);
   ringGrad.addColorStop(0.5, COLORS.green);
@@ -296,21 +279,18 @@ function drawHashRing(ctx, cx, cy, radius, nodes, chunks, highlightNode, removed
   ctx.lineWidth = 2;
   ctx.stroke();
 
-  // Inner faint ring
   ctx.beginPath();
   ctx.arc(cx, cy, radius - 12, 0, Math.PI * 2);
   ctx.strokeStyle = 'rgba(255,255,255,0.03)';
   ctx.lineWidth = 1;
   ctx.stroke();
 
-  // Node tokens on ring
   for (const node of nodes) {
     if (node.id === removedNode) continue;
     const angle = node.angle;
     const nx = cx + radius * Math.cos(angle);
     const ny = cy + radius * Math.sin(angle);
 
-    // Glow dot
     ctx.beginPath();
     ctx.arc(nx, ny, 7, 0, Math.PI * 2);
     ctx.fillStyle = node.id === highlightNode ? COLORS.amber : COLORS.green;
@@ -319,13 +299,11 @@ function drawHashRing(ctx, cx, cy, radius, nodes, chunks, highlightNode, removed
     ctx.fill();
     ctx.shadowBlur = 0;
 
-    // Label
     const labelDist = radius + 22;
     const lx = cx + labelDist * Math.cos(angle);
     const ly = cy + labelDist * Math.sin(angle);
     drawLabel(ctx, node.label, lx, ly, COLORS.textDim, 9);
 
-    // Virtual nodes (smaller dots)
     if (node.vnodes) {
       for (const va of node.vnodes) {
         const vx = cx + radius * Math.cos(va);
@@ -338,7 +316,6 @@ function drawHashRing(ctx, cx, cy, radius, nodes, chunks, highlightNode, removed
     }
   }
 
-  // Chunks on ring
   for (const chunk of chunks) {
     const angle = chunk.angle;
     const chx = cx + (radius - 12) * Math.cos(angle);
@@ -349,7 +326,6 @@ function drawHashRing(ctx, cx, cy, radius, nodes, chunks, highlightNode, removed
     ctx.fillStyle = chunk.color || COLORS.blue;
     ctx.fill();
 
-    // Assignment arrow (clockwise sweep to nearest node)
     if (chunk.assignedNode !== undefined && chunk.showArrow) {
       const targetNode = nodes.find(n => n.id === chunk.assignedNode);
       if (targetNode && targetNode.id !== removedNode) {
@@ -370,7 +346,7 @@ function drawHashRing(ctx, cx, cy, radius, nodes, chunks, highlightNode, removed
   ctx.restore();
 }
 
-// ─── Gauge Arc ───
+// Gauge
 function drawGauge(ctx, cx, cy, radius, value, maxValue, color, bgColor = 'rgba(255,255,255,0.05)') {
   ctx.save();
   const startAngle = Math.PI * 0.75;
@@ -378,7 +354,6 @@ function drawGauge(ctx, cx, cy, radius, value, maxValue, color, bgColor = 'rgba(
   const totalArc = endAngle - startAngle;
   const valueAngle = startAngle + (value / maxValue) * totalArc;
 
-  // Background arc
   ctx.beginPath();
   ctx.arc(cx, cy, radius, startAngle, endAngle);
   ctx.strokeStyle = bgColor;
@@ -386,7 +361,6 @@ function drawGauge(ctx, cx, cy, radius, value, maxValue, color, bgColor = 'rgba(
   ctx.lineCap = 'round';
   ctx.stroke();
 
-  // Value arc
   ctx.beginPath();
   ctx.arc(cx, cy, radius, startAngle, Math.min(valueAngle, endAngle));
   ctx.strokeStyle = color;
@@ -396,7 +370,6 @@ function drawGauge(ctx, cx, cy, radius, value, maxValue, color, bgColor = 'rgba(
   ctx.shadowBlur = 10;
   ctx.stroke();
 
-  // Needle dot
   const nx = cx + radius * Math.cos(valueAngle);
   const ny = cy + radius * Math.sin(valueAngle);
   ctx.beginPath();
@@ -407,7 +380,7 @@ function drawGauge(ctx, cx, cy, radius, value, maxValue, color, bgColor = 'rgba(
   ctx.restore();
 }
 
-// ─── Canvas HiDPI Setup ───
+// Setup
 function setupCanvas(canvas, width, height) {
   const dpr = window.devicePixelRatio || 1;
   canvas.width = width * dpr;
@@ -419,7 +392,6 @@ function setupCanvas(canvas, width, height) {
   return ctx;
 }
 
-// Export for app.js
 window.CanvasEngine = {
   COLORS,
   drawHexagon,

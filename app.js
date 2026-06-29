@@ -1,18 +1,9 @@
-/* ═══════════════════════════════════════════════════════════════
-   MiniGFS — Main Application
-   Scene orchestration, boot sequence, topology renderer,
-   interactivity, scroll animations. Zero deps.
-   ═══════════════════════════════════════════════════════════════ */
-
-// ponytail: One file orchestrates everything. No React, no components, no virtual DOM.
-
 (function () {
   'use strict';
 
   const CE = window.CanvasEngine;
   const SIM = window.Simulation;
 
-  // ─── Globals ───
   let sim, opLog, hashRing, particles;
   let topologyCanvas, topologyCtx, topologyW, topologyH;
   let ringCanvas, ringCtx, ringW, ringH;
@@ -21,15 +12,9 @@
   let lastTime = 0;
   let bootDone = false;
 
-  // Ring state
   let ringNodeCount = 16;
   let ringRemovedNode = null;
   let ringChunks = [];
-  let ringComparisonVisible = false;
-
-  // ═══════════════════════════════════════════════════════════════
-  // SCENE 1 — BOOT SEQUENCE
-  // ═══════════════════════════════════════════════════════════════
 
   const bootLines = [
     { text: '> Initializing MiniGFS v1.0...', tag: null },
@@ -43,6 +28,7 @@
     { text: '> System Status: OPERATIONAL ✓', tag: null, tagClass: 'status-ok', fullClass: true },
   ];
 
+  // Boot sequence
   function runBootSequence() {
     const container = document.getElementById('boot-terminal-lines');
     const counter = document.getElementById('boot-throughput');
@@ -50,7 +36,6 @@
     let charIdx = 0;
     let throughputVal = 0;
 
-    // Throughput counter
     const counterInterval = setInterval(() => {
       throughputVal = Math.min(2.1, throughputVal + 0.03 + Math.random() * 0.02);
       counter.textContent = throughputVal.toFixed(1);
@@ -69,7 +54,6 @@
       el.className = 'boot-line';
       container.appendChild(el);
 
-      // Make visible
       requestAnimationFrame(() => el.classList.add('visible'));
 
       const fullText = line.text;
@@ -83,7 +67,6 @@
           if (window.SFX) SFX.playKeyClick();
           setTimeout(typeChar, 25 + Math.random() * 30);
         } else {
-          // Add tag
           if (line.tag) {
             el.innerHTML = fullText + ' <span class="' + line.tagClass + ' flash">' + line.tag + '</span>';
             if (window.SFX) SFX.playBootOk();
@@ -100,10 +83,10 @@
       typeChar();
     }
 
-    // Start after brief pause
     setTimeout(typeLine, 500);
   }
 
+  // End boot
   function endBoot() {
     if (window.SFX) SFX.playBootComplete();
     const bootScreen = document.getElementById('boot-screen');
@@ -116,11 +99,11 @@
     }, 1000);
   }
 
+  // Show hero
   function showHero() {
     const heroContent = document.querySelector('.hero-content');
     heroContent.classList.add('visible');
 
-    // Animate badges sequentially
     const badges = document.querySelectorAll('.tech-badge');
     badges.forEach((badge, i) => {
       setTimeout(() => {
@@ -130,10 +113,7 @@
     });
   }
 
-  // ═══════════════════════════════════════════════════════════════
-  // SCENE 2 — NETWORK TOPOLOGY
-  // ═══════════════════════════════════════════════════════════════
-
+  // Topology init
   function initTopology() {
     topologyCanvas = document.getElementById('topology-canvas');
     const container = topologyCanvas.parentElement;
@@ -144,7 +124,6 @@
     sim = new SIM.SimulationEngine();
     opLog = new SIM.OperationLog();
 
-    // Controls
     document.getElementById('btn-sim-write').addEventListener('click', () => { sim.triggerWrite(); if (window.SFX) SFX.playWhoosh(); });
     document.getElementById('btn-sim-read').addEventListener('click', () => { sim.triggerRead(); if (window.SFX) SFX.playWhoosh(); });
     document.getElementById('btn-sim-failure').addEventListener('click', () => { sim.triggerFailure(); if (window.SFX) SFX.playAlert(); });
@@ -166,28 +145,24 @@
       });
     });
 
-    // Tooltip on hover
     topologyCanvas.addEventListener('mousemove', handleTooltip);
     topologyCanvas.addEventListener('mouseleave', hideTooltip);
   }
 
+  // Node layout
   function getNodePositions() {
     const nodes = [];
-    const padding = 60;
     const w = topologyW;
     const h = topologyH;
 
-    // Master node — center top
     const masterX = w / 2;
     const masterY = h * 0.15;
     nodes.push({ type: 'master', x: masterX, y: masterY, size: 28, label: 'MASTER' });
 
-    // Client node — left side
     const clientX = w * 0.1;
     const clientY = h * 0.45;
     nodes.push({ type: 'client', x: clientX, y: clientY, w: 70, h: 40, label: 'CLIENT' });
 
-    // Chunkservers — curved arc below master
     const csCount = sim.nodeCount;
     const arcCenterX = w / 2;
     const arcCenterY = h * 0.35;
@@ -213,6 +188,7 @@
     return nodes;
   }
 
+  // Draw topology
   function renderTopology(time) {
     const ctx = topologyCtx;
     ctx.clearRect(0, 0, topologyW, topologyH);
@@ -223,18 +199,14 @@
     const client = nodePositions[1];
     const chunkservers = nodePositions.slice(2);
 
-    // ─── Draw connections first (behind nodes) ───
-    // Master ↔ Chunkserver heartbeat lines
     for (const cs of chunkservers) {
       if (!cs.cs || !cs.cs.online) continue;
       const pulse = (Math.sin(time * 2 + cs.idx * 0.5) + 1) / 2;
       CE.drawFlowLine(ctx, master.x, master.y, cs.x, cs.y, CE.COLORS.blue, pulse, 1, 0.5, true);
     }
 
-    // Client → Master control flow
     CE.drawFlowLine(ctx, client.x + client.w / 2, client.y, master.x, master.y, '#ffffff', -1, 0, 0.5, true);
 
-    // Active data flows from simulation
     for (const flow of sim.activeFlows) {
       let fx, fy, tx, ty;
 
@@ -251,23 +223,18 @@
       CE.drawFlowLine(ctx, fx, fy, tx, ty, flow.color, flow.progress, 4, flow.dashed ? 1 : 2, flow.dashed);
     }
 
-    // ─── Draw nodes ───
-    // Master (hexagon, blue)
     const masterPulse = (Math.sin(time * 3) + 1) / 2;
     CE.drawHexagon(ctx, master.x, master.y, master.size, CE.COLORS.blue, 0.3 + masterPulse * 0.7);
     CE.drawLabel(ctx, '♛', master.x, master.y - 2, CE.COLORS.blue, 14);
     CE.drawLabel(ctx, master.label, master.x, master.y + master.size + 14, CE.COLORS.blue, 10);
 
-    // Client (rounded rect, purple)
     CE.drawRoundedRect(ctx, client.x - client.w / 2, client.y - client.h / 2, client.w, client.h, 8, CE.COLORS.purple, 0.5);
     CE.drawLabel(ctx, client.label, client.x, client.y, CE.COLORS.purple, 11);
 
-    // Read/Write indicators for client
     if (sim.state === SIM.SimState.WRITE) {
       CE.drawLabelGlow(ctx, '📄 data.bin 256MB', client.x, client.y - 30, CE.COLORS.amber, 9);
     }
 
-    // Chunkservers
     for (const cs of chunkservers) {
       if (!cs.cs) continue;
       const hl = highlights[cs.idx];
@@ -285,10 +252,8 @@
       CE.drawHexagon(ctx, cs.x, cs.y, cs.size, color, glow);
       CE.drawLabel(ctx, cs.label, cs.x, cs.y - 1, color, 8);
 
-      // Health bar below node
       CE.drawHealthBar(ctx, cs.x - 16, cs.y + cs.size + 6, 32, 3, cs.cs.utilization, color);
 
-      // Checkmark for replicated
       if (hl === 'replica' && sim.writePhase >= 3) {
         CE.drawLabelGlow(ctx, '✓', cs.x + cs.size + 8, cs.y, CE.COLORS.green, 12);
       }
@@ -296,20 +261,17 @@
         CE.drawLabelGlow(ctx, '✓', cs.x + cs.size + 8, cs.y, CE.COLORS.green, 12);
       }
 
-      // Failed node warning
       if (hl === 'failed' && sim.recoveryProgress < 1) {
         CE.drawLabelGlow(ctx, '⚠', cs.x + cs.size + 8, cs.y, CE.COLORS.red, 14);
       }
     }
 
-    // ─── Operation label ───
     if (sim.operationLabel) {
       const labelColor = sim.state === SIM.SimState.FAILURE ? CE.COLORS.red : CE.COLORS.blue;
       CE.drawLabel(ctx, sim.operationLabel, topologyW / 2, topologyH - 50, labelColor, 13, 'center', 'Space Grotesk');
       CE.drawLabel(ctx, sim.operationDetail, topologyW / 2, topologyH - 30, CE.COLORS.textDim, 11);
     }
 
-    // Recovery progress bar
     if (sim.state === SIM.SimState.FAILURE && sim.recoveryProgress > 0 && sim.recoveryProgress < 1) {
       const barW = 200;
       const barX = topologyW / 2 - barW / 2;
@@ -319,7 +281,7 @@
     }
   }
 
-  // ─── Tooltip ───
+  // Tooltip
   function handleTooltip(e) {
     const rect = topologyCanvas.getBoundingClientRect();
     const mx = e.clientX - rect.left;
@@ -368,10 +330,7 @@
     document.getElementById('node-tooltip').classList.remove('visible');
   }
 
-  // ═══════════════════════════════════════════════════════════════
-  // SCENE 3 — CONSISTENT HASHING RING
-  // ═══════════════════════════════════════════════════════════════
-
+  // Hashing ring
   function initRing() {
     ringCanvas = document.getElementById('ring-canvas');
     const wrap = ringCanvas.parentElement;
@@ -384,7 +343,6 @@
       hashRing.addNode(`node-${i}`, `CS-${String(i + 1).padStart(2, '0')}`);
     }
 
-    // Place sample chunks
     ringChunks = [];
     for (let i = 0; i < 20; i++) {
       const key = `chunk-${i}`;
@@ -400,13 +358,13 @@
       });
     }
 
-    // Controls
     document.getElementById('btn-ring-add').addEventListener('click', addRingNode);
     document.getElementById('btn-ring-remove').addEventListener('click', removeRingNode);
 
     updateRingStats();
   }
 
+  // Add ring node
   function addRingNode() {
     if (ringNodeCount >= 16) return;
     ringNodeCount++;
@@ -417,6 +375,7 @@
     hideRingComparison();
   }
 
+  // Remove ring node
   function removeRingNode() {
     if (ringNodeCount <= 1) return;
     const removeId = `node-${ringNodeCount - 1}`;
@@ -424,7 +383,6 @@
     ringNodeCount--;
     hashRing.removeNode(removeId);
 
-    // Count remapped chunks
     let remapped = 0;
     for (const chunk of ringChunks) {
       const newNode = hashRing.lookup(chunk.key);
@@ -461,7 +419,6 @@
     document.getElementById('ring-total-points').textContent = ringNodeCount * 3;
     document.getElementById('ring-chunks').textContent = ringChunks.length.toLocaleString();
 
-    // Compute load std deviation
     const dist = hashRing.getChunkDistribution(ringChunks.length);
     const vals = Object.values(dist);
     if (vals.length > 0) {
@@ -484,21 +441,16 @@
     CE.drawHashRing(ctx, cx, cy, radius, nodes, ringChunks, null, ringRemovedNode, time);
   }
 
-  // ═══════════════════════════════════════════════════════════════
-  // SCENE 4 — METRICS DASHBOARD
-  // ═══════════════════════════════════════════════════════════════
-
+  // Metrics
   function initMetrics() {
     throughputCanvas = document.getElementById('throughput-canvas');
     const wrap = throughputCanvas.parentElement;
     throughputCtx = CE.setupCanvas(throughputCanvas, wrap.clientWidth, 150);
 
-    // Seed throughput data
     for (let i = 0; i < 60; i++) {
       throughputData.push(1.5 + Math.random() * 0.6);
     }
 
-    // Animated counters (Intersection Observer)
     const counterEls = document.querySelectorAll('.counter-animate');
     const counterObserver = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
@@ -510,8 +462,6 @@
     }, { threshold: 0.5 });
 
     counterEls.forEach(el => counterObserver.observe(el));
-
-    // Render gauge
     renderGauge();
   }
 
@@ -526,7 +476,7 @@
     function update(now) {
       const elapsed = now - start;
       const progress = Math.min(elapsed / duration, 1);
-      const eased = 1 - Math.pow(1 - progress, 3); // ease-out cubic
+      const eased = 1 - Math.pow(1 - progress, 3);
       const current = target * eased;
       el.textContent = prefix + (decimals > 0 ? current.toFixed(decimals) : Math.floor(current).toLocaleString()) + suffix;
       if (progress < 1) requestAnimationFrame(update);
@@ -536,9 +486,6 @@
   }
 
   function renderGauge() {
-    const svgGauge = document.getElementById('fault-gauge');
-    if (!svgGauge) return;
-    // Use Canvas gauge instead
     const gaugeCanvas = document.getElementById('gauge-canvas');
     if (!gaugeCanvas) return;
     const gCtx = CE.setupCanvas(gaugeCanvas, 160, 100);
@@ -546,12 +493,10 @@
   }
 
   function updateThroughput(time) {
-    // Add new data point
     if (throughputData.length > 60) throughputData.shift();
     const newVal = 1.6 + Math.sin(time * 0.5) * 0.3 + Math.random() * 0.3;
     throughputData.push(newVal);
 
-    // Render
     const ctx = throughputCtx;
     const w = throughputCanvas.width / (window.devicePixelRatio || 1);
     const h = 150;
@@ -574,12 +519,8 @@
     container.scrollTop = container.scrollHeight;
   }
 
-  // ═══════════════════════════════════════════════════════════════
-  // SCENE 5 — ATOMIC APPEND (Pipeline Animation)
-  // ═══════════════════════════════════════════════════════════════
-
+  // Append flow
   function initAppendFlow() {
-    // Pipeline animation
     const pipelineNodes = document.querySelectorAll('.pipeline-node');
     let activeIdx = 0;
 
@@ -593,7 +534,6 @@
       }
     }, 600);
 
-    // Failure toggle
     const failBtn = document.getElementById('btn-append-failure');
     const failResult = document.getElementById('append-failure-result');
     if (failBtn) {
@@ -604,10 +544,7 @@
     }
   }
 
-  // ═══════════════════════════════════════════════════════════════
-  // SCROLL ANIMATIONS (Intersection Observer)
-  // ═══════════════════════════════════════════════════════════════
-
+  // Scroll animations
   function initScrollAnimations() {
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
@@ -622,10 +559,7 @@
     });
   }
 
-  // ═══════════════════════════════════════════════════════════════
-  // PARTICLES
-  // ═══════════════════════════════════════════════════════════════
-
+  // Particles
   function initParticles() {
     const canvas = document.getElementById('particle-canvas');
     canvas.width = window.innerWidth;
@@ -635,30 +569,23 @@
     window.addEventListener('resize', () => particles.resize());
   }
 
-  // ═══════════════════════════════════════════════════════════════
-  // MAIN ANIMATION LOOP
-  // ═══════════════════════════════════════════════════════════════
-
+  // Loop
   function loop(timestamp) {
-    const dt = Math.min((timestamp - lastTime) / 1000, 0.1); // cap delta
+    const dt = Math.min((timestamp - lastTime) / 1000, 0.1);
     lastTime = timestamp;
 
     if (bootDone) {
-      // Update simulation
       sim.update(dt);
       opLog.update(dt);
 
-      // Render canvases
       renderTopology(timestamp / 1000);
       renderRing(timestamp / 1000);
       updateThroughput(timestamp / 1000);
 
-      // Update operation log DOM (throttle to ~1.2x per second)
       if (Math.floor(timestamp / 800) !== Math.floor((timestamp - dt * 1000) / 800)) {
         updateOpLog();
       }
 
-      // Particles
       if (particles) {
         particles.update();
         particles.draw();
@@ -668,12 +595,8 @@
     requestAnimationFrame(loop);
   }
 
-  // ═══════════════════════════════════════════════════════════════
-  // RESIZE HANDLER
-  // ═══════════════════════════════════════════════════════════════
-
+  // Resize
   function handleResize() {
-    // Topology canvas
     if (topologyCanvas) {
       const container = topologyCanvas.parentElement;
       topologyW = container.clientWidth;
@@ -681,7 +604,6 @@
       topologyCtx = CE.setupCanvas(topologyCanvas, topologyW, topologyH);
     }
 
-    // Ring canvas
     if (ringCanvas) {
       const wrap = ringCanvas.parentElement;
       ringW = wrap.clientWidth;
@@ -689,13 +611,11 @@
       ringCtx = CE.setupCanvas(ringCanvas, ringW, ringH);
     }
 
-    // Throughput canvas
     if (throughputCanvas) {
       const wrap = throughputCanvas.parentElement;
       throughputCtx = CE.setupCanvas(throughputCanvas, wrap.clientWidth, 150);
     }
 
-    // Gauge
     renderGauge();
   }
 
@@ -705,14 +625,10 @@
     resizeTimeout = setTimeout(handleResize, 200);
   });
 
-  // ═══════════════════════════════════════════════════════════════
-  // INIT
-  // ═══════════════════════════════════════════════════════════════
-
+  // Init
   function init() {
-    document.body.style.overflow = 'hidden'; // Lock during boot
+    document.body.style.overflow = 'hidden';
 
-    // Check reduced motion
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
       document.getElementById('boot-screen').classList.add('hidden');
       document.body.style.overflow = '';
@@ -723,7 +639,6 @@
       runBootSequence();
     }
 
-    // Sound toggle
     const soundBtn = document.getElementById('sound-toggle');
     const soundIcon = document.getElementById('sound-icon');
     if (soundBtn) {

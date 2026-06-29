@@ -1,11 +1,3 @@
-/* ═══════════════════════════════════════════════════════════════
-   MiniGFS — Sound Effects (Web Audio API)
-   Procedural audio. No audio files needed.
-   Muted by default. Toggle with 🔊 button.
-   ═══════════════════════════════════════════════════════════════ */
-
-// ponytail: Web Audio API oscillators. No files, no Howler.js. ~80 lines.
-
 (function () {
   'use strict';
 
@@ -32,7 +24,7 @@
 
   function isMuted() { return muted; }
 
-  // ─── Keyboard click (boot sequence typing) ───
+  // Key click
   function playKeyClick() {
     const ctx = ensureCtx();
     const osc = ctx.createOscillator();
@@ -47,7 +39,7 @@
     osc.stop(ctx.currentTime + 0.04);
   }
 
-  // ─── Data whoosh (chunk transfers) ───
+  // Whoosh
   function playWhoosh() {
     const ctx = ensureCtx();
     const bufferSize = ctx.sampleRate * 0.15;
@@ -75,7 +67,7 @@
     source.start(ctx.currentTime);
   }
 
-  // ─── Success ping (replication complete) ───
+  // Success
   function playSuccess() {
     const ctx = ensureCtx();
     const osc = ctx.createOscillator();
@@ -91,7 +83,7 @@
     osc.stop(ctx.currentTime + 0.3);
   }
 
-  // ─── Alert tone (node failure) ───
+  // Alert
   function playAlert() {
     const ctx = ensureCtx();
     const osc = ctx.createOscillator();
@@ -107,7 +99,7 @@
     osc.stop(ctx.currentTime + 0.25);
   }
 
-  // ─── Boot OK beep ───
+  // Boot OK
   function playBootOk() {
     const ctx = ensureCtx();
     const osc = ctx.createOscillator();
@@ -122,7 +114,7 @@
     osc.stop(ctx.currentTime + 0.08);
   }
 
-  // ─── Boot complete chime ───
+  // Boot complete
   function playBootComplete() {
     const ctx = ensureCtx();
     [523, 659, 784].forEach((freq, i) => {

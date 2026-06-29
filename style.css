@@ -1,12 +1,5 @@
-/* ═══════════════════════════════════════════════════════════════
-   MiniGFS — Design System & Styles
-   Zero deps. Vanilla CSS. Dark neon aesthetic.
-   ═══════════════════════════════════════════════════════════════ */
-
-/* ─── Google Fonts ─── */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@500;600;700&display=swap');
 
-/* ─── Design Tokens ─── */
 :root {
   --bg: #0A0A0F;
   --bg-lighter: #12121A;
@@ -22,19 +15,16 @@
   --card-border: rgba(255, 255, 255, 0.06);
   --card-bg-hover: rgba(255, 255, 255, 0.06);
 
-  /* Glow shadows */
   --glow-blue: 0 0 20px rgba(0, 212, 255, 0.25);
   --glow-green: 0 0 20px rgba(0, 255, 136, 0.25);
   --glow-amber: 0 0 20px rgba(255, 184, 0, 0.25);
   --glow-red: 0 0 20px rgba(255, 68, 68, 0.25);
   --glow-purple: 0 0 20px rgba(168, 85, 247, 0.25);
 
-  /* Typography */
   --font-heading: 'Space Grotesk', system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, monospace;
   --font-body: 'Inter', system-ui, sans-serif;
 
-  /* Spacing */
   --space-xs: 4px;
   --space-sm: 8px;
   --space-md: 16px;
@@ -45,7 +35,6 @@
   --space-4xl: 96px;
   --space-section: 120px;
 
-  /* Radius */
   --radius-sm: 4px;
   --radius-md: 8px;
   --radius-lg: 12px;
@@ -53,7 +42,6 @@
   --radius-pill: 9999px;
 }
 
-/* ─── Reset & Base ─── */
 *, *::before, *::after {
   margin: 0;
   padding: 0;
@@ -66,7 +54,6 @@ html {
   scrollbar-color: var(--green) var(--bg);
 }
 
-/* Custom scrollbar */
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: var(--bg); }
 ::-webkit-scrollbar-thumb {
@@ -86,7 +73,7 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
-/* ─── Sound Toggle Button ─── */
+
 .sound-toggle {
   position: fixed;
   top: 16px;
@@ -117,7 +104,6 @@ body {
   color: var(--green);
 }
 
-/* ─── Scanline Overlay (Global) ─── */
 body::after {
   content: '';
   position: fixed;
@@ -133,7 +119,6 @@ body::after {
   );
 }
 
-/* ─── Dot Grid Background ─── */
 .dot-grid {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
@@ -147,7 +132,6 @@ body::after {
   background-size: 32px 32px;
 }
 
-/* ─── Particle Canvas (Background) ─── */
 #particle-canvas {
   position: fixed;
   top: 0; left: 0;
@@ -156,13 +140,11 @@ body::after {
   z-index: 1;
 }
 
-/* ─── Main Content ─── */
 main {
   position: relative;
   z-index: 2;
 }
 
-/* ─── Section Base ─── */
 .scene {
   position: relative;
   min-height: 100vh;
@@ -178,10 +160,6 @@ main {
   width: 100%;
   margin: 0 auto;
 }
-
-/* ═══════════════════════════════════════════════════════════════
-   SCENE 1 — BOOT SEQUENCE / HERO
-   ═══════════════════════════════════════════════════════════════ */
 
 #boot-screen {
   position: fixed;
@@ -288,7 +266,6 @@ main {
   100% { text-shadow: none; }
 }
 
-/* ─── Hero ─── */
 #hero {
   min-height: 100vh;
   text-align: center;
@@ -387,7 +364,6 @@ main {
   box-shadow: var(--glow-purple);
 }
 
-/* Pulse animation for badges */
 .tech-badge.pulse {
   animation: badgePulse 2s ease-in-out infinite;
 }
@@ -396,10 +372,6 @@ main {
   0%, 100% { box-shadow: none; }
   50% { box-shadow: var(--glow-blue); }
 }
-
-/* ═══════════════════════════════════════════════════════════════
-   SCENE 2 — NETWORK TOPOLOGY
-   ═══════════════════════════════════════════════════════════════ */
 
 #network-topology {
   min-height: 100vh;
@@ -442,7 +414,6 @@ main {
   background: rgba(0, 0, 0, 0.3);
 }
 
-/* Status overlay on canvas */
 .topology-status {
   position: absolute;
   bottom: var(--space-md);
@@ -471,7 +442,6 @@ main {
   50% { opacity: 0.5; box-shadow: none; }
 }
 
-/* ─── Simulation Controls ─── */
 .sim-controls {
   position: absolute;
   top: var(--space-md);
@@ -512,7 +482,6 @@ main {
   margin-right: 6px;
 }
 
-/* Slider control */
 .sim-slider-group {
   display: flex;
   align-items: center;
@@ -539,7 +508,6 @@ main {
   min-width: 24px;
 }
 
-/* Node hover tooltip */
 .node-tooltip {
   position: absolute;
   display: none;
@@ -585,10 +553,6 @@ main {
 .node-tooltip .tt-status {
   color: var(--green);
 }
-
-/* ═══════════════════════════════════════════════════════════════
-   SCENE 3 — CONSISTENT HASHING RING
-   ═══════════════════════════════════════════════════════════════ */
 
 #hashing-ring {
   min-height: 100vh;
@@ -703,10 +667,6 @@ main {
   display: block;
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   SCENE 4 — METRICS DASHBOARD
-   ═══════════════════════════════════════════════════════════════ */
-
 #metrics {
   min-height: 100vh;
 }
@@ -724,7 +684,6 @@ main {
   padding: var(--space-lg);
   backdrop-filter: blur(8px);
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
-  /* Scroll animation */
   opacity: 0;
   transform: translateY(20px);
   transition: opacity 0.6s ease, transform 0.6s ease, border-color 0.3s ease, box-shadow 0.3s ease;
@@ -760,14 +719,12 @@ main {
   margin-top: var(--space-sm);
 }
 
-/* Throughput chart */
 #throughput-canvas {
   width: 100%;
   height: 150px;
   display: block;
 }
 
-/* Fault gauge */
 .gauge-container {
   display: flex;
   flex-direction: column;
@@ -793,7 +750,6 @@ main {
   color: var(--text-dim);
 }
 
-/* Replication bars */
 .replication-bars {
   display: flex;
   flex-direction: column;
@@ -851,7 +807,6 @@ main {
   color: var(--text-muted);
 }
 
-/* Chunk stats — animated counters */
 .chunk-stats-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -881,7 +836,6 @@ main {
   letter-spacing: 0.5px;
 }
 
-/* Operation log */
 .op-log {
   font-family: var(--font-mono);
   font-size: 12px;
@@ -944,10 +898,6 @@ main {
 .op-log-entry .check {
   color: var(--green);
 }
-
-/* ═══════════════════════════════════════════════════════════════
-   SCENE 5 — ATOMIC APPEND FLOW
-   ═══════════════════════════════════════════════════════════════ */
 
 #atomic-append {
   min-height: 100vh;
@@ -1038,7 +988,6 @@ main {
   font-weight: 700;
 }
 
-/* Pipeline animation */
 .pipeline-vis {
   display: flex;
   align-items: center;
@@ -1068,7 +1017,6 @@ main {
   font-size: 16px;
 }
 
-/* Failure toggle */
 .failure-toggle {
   margin-top: var(--space-lg);
   display: flex;
@@ -1128,10 +1076,6 @@ main {
   color: var(--green);
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   SCENE 6 — TECH STACK
-   ═══════════════════════════════════════════════════════════════ */
-
 #tech-stack {
   min-height: 100vh;
 }
@@ -1154,7 +1098,6 @@ main {
   border-radius: var(--radius-lg);
   backdrop-filter: blur(8px);
   transition: all 0.3s ease;
-  /* Scroll animations */
   opacity: 0;
   transition: opacity 0.6s ease, transform 0.6s ease, border-color 0.3s ease, box-shadow 0.3s ease;
 }
@@ -1229,10 +1172,6 @@ main {
   line-height: 1.6;
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   SCENE 7 — FOOTER / CTA
-   ═══════════════════════════════════════════════════════════════ */
-
 #footer {
   min-height: 60vh;
   border-top: 1px solid var(--card-border);
@@ -1264,34 +1203,6 @@ main {
   font-weight: 700;
 }
 
-.github-cta {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-sm);
-  padding: 14px 28px;
-  border-radius: var(--radius-pill);
-  border: 1px solid rgba(0, 212, 255, 0.3);
-  background: rgba(0, 212, 255, 0.05);
-  color: var(--blue);
-  font-family: var(--font-mono);
-  font-size: 15px;
-  font-weight: 500;
-  text-decoration: none;
-  transition: all 0.3s ease;
-  cursor: pointer;
-}
-
-.github-cta:hover {
-  box-shadow: 0 0 30px rgba(0, 212, 255, 0.3), 0 0 60px rgba(0, 212, 255, 0.1);
-  border-color: var(--blue);
-  background: rgba(0, 212, 255, 0.1);
-  transform: translateY(-2px);
-}
-
-.github-cta .star {
-  font-size: 18px;
-}
-
 .footer-tags {
   display: flex;
   gap: var(--space-sm);
@@ -1318,10 +1229,6 @@ main {
   color: var(--text-muted);
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   SCROLL ANIMATIONS (Intersection Observer)
-   ═══════════════════════════════════════════════════════════════ */
-
 .fade-in {
   opacity: 0;
   transform: translateY(20px);
@@ -1332,10 +1239,6 @@ main {
   opacity: 1;
   transform: translateY(0);
 }
-
-/* ═══════════════════════════════════════════════════════════════
-   REDUCED MOTION
-   ═══════════════════════════════════════════════════════════════ */
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
@@ -1353,10 +1256,6 @@ main {
   .fade-in { opacity: 1; transform: none; }
   #boot-screen { display: none; }
 }
-
-/* ═══════════════════════════════════════════════════════════════
-   RESPONSIVE
-   ═══════════════════════════════════════════════════════════════ */
 
 @media (max-width: 1024px) {
   .ring-layout {

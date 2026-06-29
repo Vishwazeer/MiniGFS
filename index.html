@@ -10,8 +10,6 @@
 </head>
 <body>
 
-  <!-- Background layers -->
-  <!-- Sound Toggle -->
   <button id="sound-toggle" class="sound-toggle" title="Toggle Sound" aria-label="Toggle sound effects">
     <span id="sound-icon">🔇</span>
   </button>
@@ -19,9 +17,6 @@
   <div class="dot-grid"></div>
   <canvas id="particle-canvas"></canvas>
 
-  <!-- ═══════════════════════════════════════════════════════════
-       SCENE 1 — BOOT SEQUENCE
-       ═══════════════════════════════════════════════════════════ -->
   <div id="boot-screen">
     <div class="boot-terminal">
       <div id="boot-terminal-lines"></div>
@@ -32,9 +27,6 @@
   </div>
 
   <main>
-    <!-- ═══════════════════════════════════════════════════════════
-         SCENE 1b — HERO
-         ═══════════════════════════════════════════════════════════ -->
     <section id="hero" class="scene">
       <div class="scene-inner">
         <div class="hero-content">
@@ -50,9 +42,6 @@
       </div>
     </section>
 
-    <!-- ═══════════════════════════════════════════════════════════
-         SCENE 2 — LIVE SYSTEM ARCHITECTURE MAP
-         ═══════════════════════════════════════════════════════════ -->
     <section id="network-topology" class="scene">
       <div class="scene-inner">
         <div class="section-label">// LIVE ARCHITECTURE</div>
@@ -60,7 +49,6 @@
         <div class="topology-container">
           <canvas id="topology-canvas"></canvas>
 
-          <!-- Simulation Controls -->
           <div class="sim-controls">
             <button id="btn-sim-write" class="sim-btn"><span class="btn-icon">▶</span> SIMULATE WRITE</button>
             <button id="btn-sim-read" class="sim-btn"><span class="btn-icon">▶</span> SIMULATE READ</button>
@@ -78,10 +66,8 @@
             </div>
           </div>
 
-          <!-- Hover Tooltip -->
           <div id="node-tooltip" class="node-tooltip"></div>
 
-          <!-- Status indicator -->
           <div class="topology-status">
             <span class="status-dot"></span>SIMULATION ACTIVE
           </div>
@@ -89,9 +75,6 @@
       </div>
     </section>
 
-    <!-- ═══════════════════════════════════════════════════════════
-         SCENE 3 — CONSISTENT HASHING RING
-         ═══════════════════════════════════════════════════════════ -->
     <section id="hashing-ring" class="scene">
       <div class="scene-inner">
         <div class="section-label">// DATA DISTRIBUTION</div>
@@ -132,23 +115,18 @@
       </div>
     </section>
 
-    <!-- ═══════════════════════════════════════════════════════════
-         SCENE 4 — PERFORMANCE METRICS DASHBOARD
-         ═══════════════════════════════════════════════════════════ -->
     <section id="metrics" class="scene">
       <div class="scene-inner">
         <div class="section-label">// PERFORMANCE</div>
         <h2 class="section-title">Metrics Dashboard</h2>
         <div class="metrics-grid">
 
-          <!-- Card 1: Throughput -->
           <div class="metric-card">
             <div class="metric-card-title">THROUGHPUT</div>
             <canvas id="throughput-canvas"></canvas>
             <div class="metric-card-subtitle">Peak Aggregate Read: 2.1 GB/s — 16-node cluster | Pipelined transfers + Prefetching</div>
           </div>
 
-          <!-- Card 2: Fault Recovery Gauge -->
           <div class="metric-card">
             <div class="metric-card-title">FAULT RECOVERY TIME</div>
             <div class="gauge-container">
@@ -158,7 +136,6 @@
             </div>
           </div>
 
-          <!-- Card 3: Replication Status -->
           <div class="metric-card">
             <div class="metric-card-title">REPLICATION STATUS</div>
             <div class="replication-bars">
@@ -183,7 +160,6 @@
             </div>
           </div>
 
-          <!-- Card 4: Chunk Statistics -->
           <div class="metric-card span-2">
             <div class="metric-card-title">CHUNK STATISTICS</div>
             <div class="chunk-stats-grid">
@@ -214,7 +190,6 @@
             </div>
           </div>
 
-          <!-- Card 5: Operation Log -->
           <div class="metric-card">
             <div class="metric-card-title">OPERATION LOG (LIVE)</div>
             <div class="op-log" id="op-log-container"></div>
@@ -224,16 +199,12 @@
       </div>
     </section>
 
-    <!-- ═══════════════════════════════════════════════════════════
-         SCENE 5 — ATOMIC RECORD APPEND DEEP DIVE
-         ═══════════════════════════════════════════════════════════ -->
     <section id="atomic-append" class="scene">
       <div class="scene-inner">
         <div class="section-label">// CONSISTENCY</div>
         <h2 class="section-title">Atomic Record Append</h2>
         <div class="append-steps">
 
-          <!-- Step 1 -->
           <div class="append-step">
             <div class="step-number">1</div>
             <div class="step-content">
@@ -246,7 +217,6 @@
             </div>
           </div>
 
-          <!-- Step 2 -->
           <div class="append-step">
             <div class="step-number">2</div>
             <div class="step-content">
@@ -267,7 +237,6 @@
             </div>
           </div>
 
-          <!-- Step 3 -->
           <div class="append-step">
             <div class="step-number">3</div>
             <div class="step-content">
@@ -280,7 +249,6 @@
             </div>
           </div>
 
-          <!-- Step 4 -->
           <div class="append-step">
             <div class="step-number">4</div>
             <div class="step-content">
@@ -294,7 +262,6 @@
               </div>
               <div class="consistency-label">ATOMIC: Either all replicas wrote, or none did</div>
 
-              <!-- Failure Toggle -->
               <div class="failure-toggle">
                 <button id="btn-append-failure">⚠ Show Failure Scenario</button>
               </div>
@@ -312,9 +279,6 @@
       </div>
     </section>
 
-    <!-- ═══════════════════════════════════════════════════════════
-         SCENE 6 — TECH STACK
-         ═══════════════════════════════════════════════════════════ -->
     <section id="tech-stack" class="scene">
       <div class="scene-inner">
         <div class="section-label">// BUILT WITH</div>
@@ -357,9 +321,6 @@
       </div>
     </section>
 
-    <!-- ═══════════════════════════════════════════════════════════
-         SCENE 7 — FOOTER / CTA
-         ═══════════════════════════════════════════════════════════ -->
     <section id="footer" class="scene">
       <div class="scene-inner" style="text-align: center;">
         <div class="section-label">// SOURCE CODE</div>
@@ -372,10 +333,6 @@
           <div><span class="output">Chunkservers: 16 registered</span></div>
           <div><span class="status">Status: READY FOR PRODUCTION ✓</span></div>
         </div>
-
-        <a href="https://github.com" class="github-cta" target="_blank" rel="noopener">
-          <span class="star">⭐</span> View on GitHub
-        </a>
 
         <div class="footer-tags">
           <span class="footer-tag">Distributed Systems</span>
@@ -394,7 +351,6 @@
 
   </main>
 
-  <!-- Scripts (dependency order) -->
   <script src="canvas-engine.js"></script>
   <script src="simulation.js"></script>
   <script src="sfx.js"></script>
