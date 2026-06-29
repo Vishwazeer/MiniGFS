@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MiniGFS — Distributed File System</title>
+  <meta name="description" content="MiniGFS: A Google File System-inspired distributed storage engine. Interactive visualization of GFS architecture, consistent hashing, fault recovery, and high-throughput data pipelines.">
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2280%22>⬡</text></svg>">
+</head>
+<body>
+
+  <!-- Background layers -->
+  <!-- Sound Toggle -->
+  <button id="sound-toggle" class="sound-toggle" title="Toggle Sound" aria-label="Toggle sound effects">
+    <span id="sound-icon">🔇</span>
+  </button>
+
+  <div class="dot-grid"></div>
+  <canvas id="particle-canvas"></canvas>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       SCENE 1 — BOOT SEQUENCE
+       ═══════════════════════════════════════════════════════════ -->
+  <div id="boot-screen">
+    <div class="boot-terminal">
+      <div id="boot-terminal-lines"></div>
+      <div class="boot-counter">
+        <span id="boot-throughput">0.0</span> GB/s
+      </div>
+    </div>
+  </div>
+
+  <main>
+    <!-- ═══════════════════════════════════════════════════════════
+         SCENE 1b — HERO
+         ═══════════════════════════════════════════════════════════ -->
+    <section id="hero" class="scene">
+      <div class="scene-inner">
+        <div class="hero-content">
+          <h1 class="hero-title">MiniGFS</h1>
+          <p class="hero-subtitle">A Google File System-Inspired Distributed Storage Engine</p>
+          <div class="tech-badges">
+            <span class="tech-badge" data-color="blue">C++</span>
+            <span class="tech-badge" data-color="green">gRPC</span>
+            <span class="tech-badge" data-color="amber">Protocol Buffers</span>
+            <span class="tech-badge" data-color="purple">Consistent Hashing</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         SCENE 2 — LIVE SYSTEM ARCHITECTURE MAP
+         ═══════════════════════════════════════════════════════════ -->
+    <section id="network-topology" class="scene">
+      <div class="scene-inner">
+        <div class="section-label">// LIVE ARCHITECTURE</div>
+        <h2 class="section-title">System Topology</h2>
+        <div class="topology-container">
+          <canvas id="topology-canvas"></canvas>
+
+          <!-- Simulation Controls -->
+          <div class="sim-controls">
+            <button id="btn-sim-write" class="sim-btn"><span class="btn-icon">▶</span> SIMULATE WRITE</button>
+            <button id="btn-sim-read" class="sim-btn"><span class="btn-icon">▶</span> SIMULATE READ</button>
+            <button id="btn-sim-failure" class="sim-btn"><span class="btn-icon">▶</span> SIMULATE FAILURE</button>
+            <div class="sim-slider-group">
+              NODES:
+              <input type="range" id="node-slider" min="1" max="16" value="16">
+              <span id="node-slider-val" class="slider-val">16</span>
+            </div>
+            <div class="sim-slider-group">
+              REPLICATION:
+              <button class="repl-btn sim-btn" data-repl="1" style="padding:4px 8px;margin:0">1×</button>
+              <button class="repl-btn sim-btn" data-repl="2" style="padding:4px 8px;margin:0">2×</button>
+              <button class="repl-btn sim-btn active" data-repl="3" style="padding:4px 8px;margin:0">3×</button>
+            </div>
+          </div>
+
+          <!-- Hover Tooltip -->
+          <div id="node-tooltip" class="node-tooltip"></div>
+
+          <!-- Status indicator -->
+          <div class="topology-status">
+            <span class="status-dot"></span>SIMULATION ACTIVE
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         SCENE 3 — CONSISTENT HASHING RING
+         ═══════════════════════════════════════════════════════════ -->
+    <section id="hashing-ring" class="scene">
+      <div class="scene-inner">
+        <div class="section-label">// DATA DISTRIBUTION</div>
+        <h2 class="section-title">Consistent Hashing Ring</h2>
+        <div class="ring-layout">
+          <div class="ring-canvas-wrap">
+            <canvas id="ring-canvas"></canvas>
+          </div>
+          <div class="ring-stats">
+            <h3>CONSISTENT HASHING RING</h3>
+            <div class="ring-stat-row">
+              <span class="ring-stat-label">Total Nodes:</span>
+              <span class="ring-stat-value" id="ring-total-nodes">16</span>
+            </div>
+            <div class="ring-stat-row">
+              <span class="ring-stat-label">Virtual Nodes/Server:</span>
+              <span class="ring-stat-value" id="ring-vnodes">3</span>
+            </div>
+            <div class="ring-stat-row">
+              <span class="ring-stat-label">Total Ring Points:</span>
+              <span class="ring-stat-value" id="ring-total-points">48</span>
+            </div>
+            <div class="ring-stat-row">
+              <span class="ring-stat-label">Load Std Deviation:</span>
+              <span class="ring-stat-value" id="ring-load-std">±4.2%</span>
+            </div>
+            <div class="ring-stat-row">
+              <span class="ring-stat-label">Chunks on Ring:</span>
+              <span class="ring-stat-value" id="ring-chunks">20</span>
+            </div>
+            <div class="ring-actions">
+              <button id="btn-ring-add" class="ring-btn">+ ADD NODE</button>
+              <button id="btn-ring-remove" class="ring-btn remove">− REMOVE NODE</button>
+            </div>
+            <div id="ring-comparison" class="ring-comparison"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         SCENE 4 — PERFORMANCE METRICS DASHBOARD
+         ═══════════════════════════════════════════════════════════ -->
+    <section id="metrics" class="scene">
+      <div class="scene-inner">
+        <div class="section-label">// PERFORMANCE</div>
+        <h2 class="section-title">Metrics Dashboard</h2>
+        <div class="metrics-grid">
+
+          <!-- Card 1: Throughput -->
+          <div class="metric-card">
+            <div class="metric-card-title">THROUGHPUT</div>
+            <canvas id="throughput-canvas"></canvas>
+            <div class="metric-card-subtitle">Peak Aggregate Read: 2.1 GB/s — 16-node cluster | Pipelined transfers + Prefetching</div>
+          </div>
+
+          <!-- Card 2: Fault Recovery Gauge -->
+          <div class="metric-card">
+            <div class="metric-card-title">FAULT RECOVERY TIME</div>
+            <div class="gauge-container">
+              <canvas id="gauge-canvas" width="160" height="100"></canvas>
+              <div class="gauge-value">~487ms</div>
+              <div class="gauge-label">Single-node failure | Heartbeat: 500ms</div>
+            </div>
+          </div>
+
+          <!-- Card 3: Replication Status -->
+          <div class="metric-card">
+            <div class="metric-card-title">REPLICATION STATUS</div>
+            <div class="replication-bars">
+              <div class="repl-bar-group">
+                <div class="repl-bar-label">Replica 1</div>
+                <div class="repl-bar"><div class="repl-bar-fill r1" style="width: 94%"></div></div>
+              </div>
+              <div class="repl-bar-group">
+                <div class="repl-bar-label">Replica 2</div>
+                <div class="repl-bar"><div class="repl-bar-fill r2" style="width: 91%"></div></div>
+              </div>
+              <div class="repl-bar-group">
+                <div class="repl-bar-label">Replica 3</div>
+                <div class="repl-bar"><div class="repl-bar-fill r3" style="width: 89%"></div></div>
+              </div>
+              <div class="repl-footer">Replication Factor: 3× | Durability: 99.999%</div>
+              <div class="repl-icons">
+                <span>🔒 Atomic Append</span>
+                <span>📡 Heartbeat</span>
+                <span>⚡ Pipeline</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 4: Chunk Statistics -->
+          <div class="metric-card span-2">
+            <div class="metric-card-title">CHUNK STATISTICS</div>
+            <div class="chunk-stats-grid">
+              <div class="chunk-stat">
+                <div class="chunk-stat-value counter-animate" data-target="2847" data-decimals="0">0</div>
+                <div class="chunk-stat-label">Chunks</div>
+              </div>
+              <div class="chunk-stat">
+                <div class="chunk-stat-value counter-animate" data-target="64" data-suffix=" MB" data-decimals="0">0</div>
+                <div class="chunk-stat-label">Chunk Size</div>
+              </div>
+              <div class="chunk-stat">
+                <div class="chunk-stat-value counter-animate" data-target="99.97" data-suffix="%" data-decimals="2">0</div>
+                <div class="chunk-stat-label">Uptime</div>
+              </div>
+              <div class="chunk-stat">
+                <div class="chunk-stat-value" style="color: var(--green)">3×</div>
+                <div class="chunk-stat-label">Replicated</div>
+              </div>
+              <div class="chunk-stat">
+                <div class="chunk-stat-value" style="color: var(--amber)">&lt;500ms</div>
+                <div class="chunk-stat-label">Recovery</div>
+              </div>
+              <div class="chunk-stat">
+                <div class="chunk-stat-value counter-animate" data-target="2.1" data-suffix=" GB/s" data-decimals="1">0</div>
+                <div class="chunk-stat-label">Throughput</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 5: Operation Log -->
+          <div class="metric-card">
+            <div class="metric-card-title">OPERATION LOG (LIVE)</div>
+            <div class="op-log" id="op-log-container"></div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         SCENE 5 — ATOMIC RECORD APPEND DEEP DIVE
+         ═══════════════════════════════════════════════════════════ -->
+    <section id="atomic-append" class="scene">
+      <div class="scene-inner">
+        <div class="section-label">// CONSISTENCY</div>
+        <h2 class="section-title">Atomic Record Append</h2>
+        <div class="append-steps">
+
+          <!-- Step 1 -->
+          <div class="append-step">
+            <div class="step-number">1</div>
+            <div class="step-content">
+              <h3>Client requests append to Master</h3>
+              <p>The client contacts the Master node to find which chunkservers hold the target file's last chunk.</p>
+              <div class="step-visual">
+                <span class="node-label">CLIENT</span> <span class="arrow">→</span> <span class="node-label">MASTER</span>: <span class="data-label">APPEND(data, filename)</span><br>
+                <span class="node-label">MASTER</span> <span class="arrow">→</span> <span class="node-label">CLIENT</span>: Primary + Replica locations
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 2 -->
+          <div class="append-step">
+            <div class="step-number">2</div>
+            <div class="step-content">
+              <h3>Client sends data to ALL replicas</h3>
+              <p>Data is pushed through a pipeline chain, not broadcast. Each node forwards to the next, minimizing client bandwidth.</p>
+              <div class="step-visual">
+                Pipeline: <span class="node-label">Client</span> <span class="arrow">→</span> <span class="node-label">CS-03</span> <span class="arrow">→</span> <span class="node-label">CS-07</span> <span class="arrow">→</span> <span class="node-label">CS-12</span>
+              </div>
+              <div class="pipeline-vis">
+                <div class="pipeline-node">Client</div>
+                <div class="pipeline-arrow">→</div>
+                <div class="pipeline-node">CS-03</div>
+                <div class="pipeline-arrow">→</div>
+                <div class="pipeline-node">CS-07</div>
+                <div class="pipeline-arrow">→</div>
+                <div class="pipeline-node">CS-12</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 3 -->
+          <div class="append-step">
+            <div class="step-number">3</div>
+            <div class="step-content">
+              <h3>Primary picks offset, issues WRITE</h3>
+              <p>The primary chunkserver (CS-03) selects a byte offset and instructs all replicas to write at the identical position.</p>
+              <div class="step-visual">
+                <span class="node-label">CS-03</span> (Primary): <span class="data-label">OFFSET SELECTED: byte 1,048,576</span><br>
+                <span class="node-label">CS-03</span> <span class="arrow">→</span> <span class="node-label">CS-07</span>, <span class="node-label">CS-12</span>: WRITE at offset <span class="data-label">1,048,576</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 4 -->
+          <div class="append-step">
+            <div class="step-number">4</div>
+            <div class="step-content">
+              <h3>All ACK → Primary ACKs Client</h3>
+              <p>Each replica acknowledges. Once all ACKs arrive at the primary, the primary confirms success to the client.</p>
+              <div class="step-visual">
+                <span class="node-label">CS-07</span>: <span class="success-label">ACK ✓</span> &nbsp;
+                <span class="node-label">CS-12</span>: <span class="success-label">ACK ✓</span> <span class="arrow">→</span>
+                <span class="node-label">CS-03</span>: <span class="success-label">ALL ACK ✓</span> <span class="arrow">→</span>
+                <span class="node-label">CLIENT</span>: <span class="success-label">SUCCESS</span>
+              </div>
+              <div class="consistency-label">ATOMIC: Either all replicas wrote, or none did</div>
+
+              <!-- Failure Toggle -->
+              <div class="failure-toggle">
+                <button id="btn-append-failure">⚠ Show Failure Scenario</button>
+              </div>
+              <div id="append-failure-result" class="failure-result">
+                <span class="error-label">CS-07 FAILS MID-WRITE</span><br>
+                CS-03 receives only partial ACKs<br>
+                <span class="error-label">ABORT</span> signal sent to all replicas<br>
+                <span class="data-label">WRITE ROLLED BACK</span> — Client retries from Step 1<br>
+                <span class="success-label">Consistency guaranteed ✓</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         SCENE 6 — TECH STACK
+         ═══════════════════════════════════════════════════════════ -->
+    <section id="tech-stack" class="scene">
+      <div class="scene-inner">
+        <div class="section-label">// BUILT WITH</div>
+        <h2 class="section-title">Tech Stack</h2>
+        <div class="stack-cards">
+
+          <div class="stack-card">
+            <div class="stack-icon cpp">C++</div>
+            <div class="stack-info">
+              <h3>C++ Core Engine</h3>
+              <p>High-performance systems programming for zero-overhead abstractions. Master node, chunkserver, and client library all implemented in modern C++17 with STL concurrency primitives.</p>
+            </div>
+          </div>
+
+          <div class="stack-card">
+            <div class="stack-icon grpc">gR</div>
+            <div class="stack-info">
+              <h3>gRPC Communication</h3>
+              <p>Bidirectional streaming RPC for master-client coordination and client-chunkserver data transfer. Enables pipelined data transfer achieving 2.1 GB/s aggregate throughput.</p>
+            </div>
+          </div>
+
+          <div class="stack-card">
+            <div class="stack-icon proto">PB</div>
+            <div class="stack-info">
+              <h3>Protocol Buffers</h3>
+              <p>Efficient binary serialization for all inter-node messages. ChunkHandle, MutationOrder, and HeartbeatResponse all defined in .proto schemas — compact, versioned, language-agnostic.</p>
+            </div>
+          </div>
+
+          <div class="stack-card">
+            <div class="stack-icon hash">⬡</div>
+            <div class="stack-info">
+              <h3>Consistent Hashing</h3>
+              <p>Custom ring implementation with 3 virtual nodes per server for uniform load distribution. Minimizes chunk remapping on node addition/removal to under 6% disruption.</p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         SCENE 7 — FOOTER / CTA
+         ═══════════════════════════════════════════════════════════ -->
+    <section id="footer" class="scene">
+      <div class="scene-inner" style="text-align: center;">
+        <div class="section-label">// SOURCE CODE</div>
+        <h2 class="section-title" style="margin-bottom: var(--space-2xl);">Explore MiniGFS</h2>
+
+        <div class="footer-terminal">
+          <div><span class="prompt">$</span> <span class="output">./minigfs --nodes=16 --replication=3</span></div>
+          <div><span class="output">MiniGFS initialized.</span></div>
+          <div><span class="output">Master: localhost:8080</span></div>
+          <div><span class="output">Chunkservers: 16 registered</span></div>
+          <div><span class="status">Status: READY FOR PRODUCTION ✓</span></div>
+        </div>
+
+        <a href="https://github.com" class="github-cta" target="_blank" rel="noopener">
+          <span class="star">⭐</span> View on GitHub
+        </a>
+
+        <div class="footer-tags">
+          <span class="footer-tag">Distributed Systems</span>
+          <span class="footer-tag">Storage Engine</span>
+          <span class="footer-tag">C++</span>
+          <span class="footer-tag">gRPC</span>
+          <span class="footer-tag">Fault Tolerant</span>
+          <span class="footer-tag">High Throughput</span>
+        </div>
+
+        <div class="footer-credit">
+          MiniGFS — Built with ⬡ distributed precision
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Scripts (dependency order) -->
+  <script src="canvas-engine.js"></script>
+  <script src="simulation.js"></script>
+  <script src="sfx.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
